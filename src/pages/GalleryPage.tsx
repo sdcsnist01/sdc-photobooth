@@ -35,7 +35,6 @@ export function GalleryPage() {
   return (
     <div
       className="min-h-dvh flex flex-col"
-      style={{ background: 'var(--color-surface-900)' }}
     >
       <title>Your UXplosion 3.0 Photos</title>
 

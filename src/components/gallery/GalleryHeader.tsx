@@ -1,4 +1,4 @@
-import { Camera, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 
 interface Props {
   photoCount: number
@@ -20,9 +20,9 @@ export function GalleryHeader({ photoCount, createdAt }: Props) {
   return (
     <div className="glass-dark border-b border-white/10 px-4 py-5 text-center">
       {/* Logo / Brand */}
-      <div className="flex items-center justify-center gap-2 mb-1">
-        <Camera size={20} className="text-brand-400" />
-        <span className="text-brand-300 text-xs font-bold uppercase tracking-widest">SDC UXplosion 3.0</span>
+      <div className="flex flex-col items-center justify-center gap-1 mb-2">
+        <img src="/sdc-logo.png" alt="SDC – Student Developers Community" className="h-7 w-auto" draggable={false} />
+        <span className="flex items-baseline gap-1.5"><span className="ux-bubble-word text-2xl">UXplosion</span><span className="ux-bubble-three text-xl">3.0</span></span>
       </div>
       <h1 className="text-xl font-bold gradient-text mb-1">Your Photos</h1>
       <div className="flex items-center justify-center gap-3 text-slate-400 text-xs">

@@ -1,56 +1,46 @@
-import { supabase } from '@/lib/supabase'
-import {
-  STORAGE_BUCKET,
-  UPLOAD_MAX_RETRIES,
-  UPLOAD_RETRY_BASE_DELAY_MS,
-} from '@/lib/constants'
+import { UPLOAD_MAX_RETRIES, UPLOAD_RETRY_BASE_DELAY_MS } from '@/lib/constants'
 
-export interface UploadResult {
-  storagePath: string
+export interface UploadInput {
+  boothToken: string
+  localId: string
+  blob: Blob
+  mimeType: 'image/webp' | 'image/jpeg'
+  captureOrder: number
+  width: number
+  height: number
 }
 
 /**
- * Uploads a photo blob to Supabase Storage with exponential-backoff retry.
- * The path is deterministic (based on sessionId + localId), making retries idempotent.
- *
- * @param sessionId  Internal DB session UUID (used for storage folder)
- * @param localId    UUID assigned to this photo at capture time (idempotent key)
- * @param blob       The image blob
- * @param mimeType   'image/webp' or 'image/jpeg'
- * @param onProgress Optional callback receiving 0–100 progress estimate
+ * Uploads one photo through /api/booth/upload with exponential-backoff retry.
+ * Retries are idempotent: the server derives the storage path from localId.
  */
 export async function uploadPhoto(
-  sessionId: string,
-  localId: string,
-  blob: Blob,
-  mimeType: 'image/webp' | 'image/jpeg',
+  input: UploadInput,
   onProgress?: (pct: number) => void
-): Promise<UploadResult> {
-  const ext = mimeType === 'image/webp' ? 'webp' : 'jpg'
-  const storagePath = `${sessionId}/${localId}.${ext}`
-
+): Promise<{ photoId: string }> {
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < UPLOAD_MAX_RETRIES; attempt++) {
-    if (attempt > 0) {
-      const delay = UPLOAD_RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1)
-      await sleep(delay)
-    }
+    if (attempt > 0) await sleep(UPLOAD_RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1))
 
     try {
       onProgress?.(attempt === 0 ? 10 : 20 + attempt * 20)
 
-      const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(storagePath, blob, {
-          contentType: mimeType,
-          upsert: true, // idempotent: overwrite if same path already exists from a retry
-        })
+      const form = new FormData()
+      form.append('boothToken', input.boothToken)
+      form.append('localId', input.localId)
+      form.append('mimeType', input.mimeType)
+      form.append('captureOrder', String(input.captureOrder))
+      form.append('width', String(input.width))
+      form.append('height', String(input.height))
+      form.append('file', input.blob)
 
-      if (error) throw new Error(error.message)
+      const res = await fetch('/api/booth/upload', { method: 'POST', body: form })
+      if (!res.ok) throw new Error(`Upload failed (${res.status})`)
 
+      const { photoId } = (await res.json()) as { photoId: string }
       onProgress?.(100)
-      return { storagePath }
+      return { photoId }
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err))
       console.warn(`Upload attempt ${attempt + 1}/${UPLOAD_MAX_RETRIES} failed:`, lastError.message)
@@ -61,8 +51,6 @@ export async function uploadPhoto(
     `Upload failed after ${UPLOAD_MAX_RETRIES} attempts: ${lastError?.message ?? 'Unknown error'}`
   )
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))

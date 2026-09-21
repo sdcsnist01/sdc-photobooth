@@ -10,10 +10,10 @@ interface Props {
 export function PhotoStrip({ photos, onDelete }: Props) {
   if (photos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-600">
-        <Images size={36} strokeWidth={1.5} />
+      <div className="flex flex-row md:flex-col items-center justify-center h-full gap-3 text-[#7A7278]">
+        <Images size={36} strokeWidth={1.5} className="text-[#FF6FA8]/60" />
         <p className="text-sm text-center leading-snug">
-          Photos you take will<br />appear here
+          Photos you take will<br className="hidden md:inline" /> appear here
         </p>
       </div>
     )

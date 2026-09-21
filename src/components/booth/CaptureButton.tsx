@@ -29,7 +29,7 @@ export function CaptureButton({ photoCount, disabled = false, onCapture }: Props
         aria-label="Take photo"
         title={atLimit ? `Maximum ${MAX_PHOTOS_PER_SESSION} photos per session` : 'Take photo'}
       >
-        <Camera size={26} className="text-brand-700" />
+        <Camera size={26} className="text-[#0A0A0C]" />
       </button>
       <span className="text-xs text-slate-400">
         {atLimit

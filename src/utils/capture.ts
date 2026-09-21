@@ -1,4 +1,6 @@
 import {
+  FRAME_SRC,
+  FRAME_WINDOW,
   IMAGE_QUALITY,
   JPEG_FALLBACK_QUALITY,
   MAX_CAPTURE_WIDTH,
@@ -25,17 +27,22 @@ export type CaptureResult = {
   height: number
 }
 
+/** Loaded once; resolves to null if the frame can't be loaded (photos are then saved unframed). */
+const framePromise: Promise<HTMLImageElement | null> =
+  typeof Image === 'undefined'
+    ? Promise.resolve(null)
+    : new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => resolve(null)
+        img.src = FRAME_SRC
+      })
+
 /**
- * Captures the current video frame onto a canvas, optionally composites
- * a branded frame overlay, then exports as WebP (or JPEG fallback).
- *
- * @param videoEl   The live <video> element
- * @param overlayEl Optional pre-loaded <img> element for the brand frame
+ * Captures the current video frame, fits it (cover) into the brand frame's
+ * photo window, draws the frame on top, then exports as WebP (or JPEG fallback).
  */
-export async function captureFrame(
-  videoEl: HTMLVideoElement,
-  overlayEl?: HTMLImageElement | null
-): Promise<CaptureResult> {
+export async function captureFrame(videoEl: HTMLVideoElement): Promise<CaptureResult> {
   const srcWidth = videoEl.videoWidth
   const srcHeight = videoEl.videoHeight
 
@@ -43,10 +50,23 @@ export async function captureFrame(
     throw new Error('Video dimensions not available. Is the camera stream active?')
   }
 
-  // Downscale if wider than MAX_CAPTURE_WIDTH, preserving aspect ratio
-  const scale = srcWidth > MAX_CAPTURE_WIDTH ? MAX_CAPTURE_WIDTH / srcWidth : 1
-  const canvasWidth = Math.round(srcWidth * scale)
-  const canvasHeight = Math.round(srcHeight * scale)
+  const frame = await framePromise
+
+  // Framed: canvas is the frame's size. Unframed fallback: the raw video size.
+  let canvasWidth: number
+  let canvasHeight: number
+  let target: { x: number; y: number; width: number; height: number }
+
+  if (frame) {
+    canvasWidth = frame.naturalWidth
+    canvasHeight = frame.naturalHeight
+    target = FRAME_WINDOW
+  } else {
+    const scale = srcWidth > MAX_CAPTURE_WIDTH ? MAX_CAPTURE_WIDTH / srcWidth : 1
+    canvasWidth = Math.round(srcWidth * scale)
+    canvasHeight = Math.round(srcHeight * scale)
+    target = { x: 0, y: 0, width: canvasWidth, height: canvasHeight }
+  }
 
   // Reuse a single module-level canvas to avoid memory leaks
   const canvas = getSharedCanvas()
@@ -56,13 +76,21 @@ export async function captureFrame(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2D canvas context')
 
-  // 1. Draw the video frame
-  ctx.drawImage(videoEl, 0, 0, canvasWidth, canvasHeight)
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-  // 2. Composite the optional brand overlay (covers full canvas)
-  if (overlayEl) {
-    ctx.drawImage(overlayEl, 0, 0, canvasWidth, canvasHeight)
-  }
+  // 1. Video frame, cropped to fill the window ("cover")
+  const windowRatio = target.width / target.height
+  let sw = srcWidth
+  let sh = srcHeight
+  if (srcWidth / srcHeight > windowRatio) sw = srcHeight * windowRatio
+  else sh = srcWidth / windowRatio
+  const sx = (srcWidth - sw) / 2
+  const sy = (srcHeight - sh) / 2
+  ctx.drawImage(videoEl, sx, sy, sw, sh, target.x, target.y, target.width, target.height)
+
+  // 2. Brand frame on top (its photo window is transparent)
+  if (frame) ctx.drawImage(frame, 0, 0)
 
   // 3. Export as blob
   const mimeType = CAN_ENCODE_WEBP ? 'image/webp' : 'image/jpeg'

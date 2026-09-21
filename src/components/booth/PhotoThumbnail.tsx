@@ -16,12 +16,12 @@ const STATUS_INDICATOR: Record<string, string> = {
 
 export function PhotoThumbnail({ photo, index, onDelete }: Props) {
   return (
-    <div className="relative group fade-in">
-      <div className="relative rounded-xl overflow-hidden aspect-video bg-slate-800 shadow-card">
+    <div className="relative group fade-in flex-none w-24 md:w-auto">
+      <div className="relative rounded-xl overflow-hidden aspect-square bg-[#0A0A0C] border border-white/[0.09] shadow-card">
         <img
           src={photo.previewUrl}
           alt={`Photo ${index + 1}`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           loading="lazy"
         />
 
@@ -47,16 +47,16 @@ export function PhotoThumbnail({ photo, index, onDelete }: Props) {
         {index + 1}
       </span>
 
-      {/* Delete button — shown on hover */}
+      {/* Delete button — always visible (no hover on touch screens) */}
       <button
         id={`delete-photo-${photo.localId}`}
         onClick={() => onDelete(photo.localId)}
         disabled={photo.uploadStatus === 'uploading'}
-        className="btn-danger absolute top-1 right-1 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="btn-danger absolute top-1.5 right-1.5 w-8 h-8 p-0 bg-black/60 backdrop-blur-sm"
         aria-label={`Delete photo ${index + 1}`}
         title="Delete photo"
       >
-        <X size={12} />
+        <X size={16} />
       </button>
     </div>
   )

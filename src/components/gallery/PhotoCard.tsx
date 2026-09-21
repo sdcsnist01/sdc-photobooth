@@ -24,11 +24,11 @@ export function PhotoCard({ photo, index, onClick }: Props) {
       onKeyDown={(e) => e.key === 'Enter' && onClick(photo)}
       aria-label={`View photo ${index + 1}`}
     >
-      <div className="aspect-video relative">
+      <div className="aspect-square relative">
         <img
           src={photo.signedUrl}
           alt={`Photo ${index + 1}`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           loading="lazy"
           onError={(e) => {
             // If signed URL has expired, show broken state
@@ -49,7 +49,7 @@ export function PhotoCard({ photo, index, onClick }: Props) {
       <button
         id={`download-photo-${photo.id}`}
         onClick={handleDownload}
-        className="absolute bottom-2 right-2 glass rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all text-white hover:bg-white/20"
+        className="absolute bottom-2 right-2 glass rounded-full p-2.5 transition-all text-white hover:bg-white/20"
         aria-label={`Download photo ${index + 1}`}
         title="Download"
       >

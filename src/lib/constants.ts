@@ -27,3 +27,18 @@ export const UPLOAD_RETRY_BASE_DELAY_MS = 1000
 
 /** Milliseconds to debounce the capture button */
 export const CAPTURE_DEBOUNCE_MS = 500
+
+/** Seconds counted down before each photo is taken */
+export const COUNTDOWN_SECONDS = 3
+
+/** Seconds a deleted photo can be restored with Undo */
+export const UNDO_SECONDS = 5
+
+/** Brand frame composited onto every photo (public/frame.png, transparent photo window) */
+export const FRAME_SRC = '/frame.png'
+
+/** frame.png dimensions in pixels */
+export const FRAME_SIZE = { width: 1884, height: 1885 } as const
+
+/** Photo window inside frame.png, in the frame's own pixels */
+export const FRAME_WINDOW = { x: 140, y: 541, width: 1601, height: 991 } as const

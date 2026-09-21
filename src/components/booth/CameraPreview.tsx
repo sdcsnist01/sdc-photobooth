@@ -27,7 +27,7 @@ export function CameraPreview({ stream, onFlip, showFlip = false, flashActive = 
   }, [stream])
 
   return (
-    <div className="relative w-full h-full bg-black rounded-2xl overflow-hidden">
+    <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Video element */}
       <video
         ref={videoRef}

@@ -1,10 +1,7 @@
 import { useCallback, useReducer } from 'react'
-import { supabase } from '@/lib/supabase'
-import { generateSecureToken } from '@/utils/token'
 import { uploadPhoto } from '@/utils/upload'
 import { generateQRCode } from '@/utils/qr'
 import { GALLERY_BASE_PATH } from '@/lib/constants'
-import type { DbSession, DbPhoto } from '@/types/database'
 import type {
   BoothSessionState,
   BoothStep,
@@ -17,15 +14,16 @@ import type {
 type Action =
   | { type: 'ADD_PHOTO'; photo: CapturedPhoto }
   | { type: 'REMOVE_PHOTO'; localId: string }
+  | { type: 'RESTORE_PHOTO'; photo: CapturedPhoto; index: number }
   | { type: 'SET_STEP'; step: BoothStep }
-  | { type: 'SET_SESSION'; sessionId: string; secureToken: string }
-  | { type: 'UPDATE_PHOTO_UPLOAD'; localId: string; status: PhotoUploadStatus; progress: number; storagePath?: string; dbId?: string }
+  | { type: 'SET_SESSION'; boothToken: string; secureToken: string }
+  | { type: 'UPDATE_PHOTO_UPLOAD'; localId: string; status: PhotoUploadStatus; progress: number; dbId?: string }
   | { type: 'SET_ERROR'; error: string }
   | { type: 'RESET' }
 
 const INITIAL_STATE: BoothSessionState = {
   step: 'capture',
-  sessionId: null,
+  boothToken: null,
   secureToken: null,
   photos: [],
   overallError: null,
@@ -36,17 +34,21 @@ function reducer(state: BoothSessionState, action: Action): BoothSessionState {
     case 'ADD_PHOTO':
       return { ...state, photos: [...state.photos, action.photo] }
 
-    case 'REMOVE_PHOTO': {
-      const photo = state.photos.find((p) => p.localId === action.localId)
-      if (photo?.previewUrl) URL.revokeObjectURL(photo.previewUrl)
+    // The preview URL is kept alive so the removal can be undone; call discardPhoto to free it.
+    case 'REMOVE_PHOTO':
       return { ...state, photos: state.photos.filter((p) => p.localId !== action.localId) }
+
+    case 'RESTORE_PHOTO': {
+      const photos = [...state.photos]
+      photos.splice(Math.min(action.index, photos.length), 0, action.photo)
+      return { ...state, photos }
     }
 
     case 'SET_STEP':
       return { ...state, step: action.step, overallError: null }
 
     case 'SET_SESSION':
-      return { ...state, sessionId: action.sessionId, secureToken: action.secureToken }
+      return { ...state, boothToken: action.boothToken, secureToken: action.secureToken }
 
     case 'UPDATE_PHOTO_UPLOAD':
       return {
@@ -57,7 +59,6 @@ function reducer(state: BoothSessionState, action: Action): BoothSessionState {
                 ...p,
                 uploadStatus: action.status,
                 uploadProgress: action.progress,
-                storagePath: action.storagePath ?? p.storagePath,
                 dbId: action.dbId ?? p.dbId,
               }
             : p
@@ -92,32 +93,39 @@ export function useSession() {
     dispatch({ type: 'REMOVE_PHOTO', localId })
   }, [])
 
+  const restorePhoto = useCallback((photo: CapturedPhoto, index: number) => {
+    dispatch({ type: 'RESTORE_PHOTO', photo, index })
+  }, [])
+
+  const discardPhoto = useCallback((photo: CapturedPhoto) => {
+    URL.revokeObjectURL(photo.previewUrl)
+  }, [])
+
   const finishSession = useCallback(
     async (photos: CapturedPhoto[]): Promise<{ galleryUrl: string; qrDataUrl: string }> => {
       dispatch({ type: 'SET_STEP', step: 'uploading' })
 
-      const secureToken = generateSecureToken()
-
-      // 1. Create session row
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: sessionData, error: sessionError } = await (supabase
-        .from('sessions') as any)
-        .insert({ secure_token: secureToken, status: 'uploading', photo_count: 0 })
-        .select('id')
-        .single()
-
-      if (sessionError || !sessionData) {
+      // 1. Create session (tokens are generated server-side)
+      let boothToken: string
+      let secureToken: string
+      try {
+        const res = await fetch('/api/booth/session', { method: 'POST' })
+        if (!res.ok) throw new Error(`Session creation failed (${res.status})`)
+        ;({ boothToken, secureToken } = (await res.json()) as {
+          boothToken: string
+          secureToken: string
+        })
+      } catch (err) {
         dispatch({ type: 'SET_ERROR', error: 'Could not create session. Please try again.' })
-        throw new Error(sessionError?.message ?? 'Session creation failed')
+        throw err
       }
 
-      const sessionId = (sessionData as Pick<DbSession, 'id'>).id
-      dispatch({ type: 'SET_SESSION', sessionId, secureToken })
+      dispatch({ type: 'SET_SESSION', boothToken, secureToken })
 
       // 2. Upload photos sequentially
       let successCount = 0
 
-      for (const photo of photos) {
+      for (const [order, photo] of photos.entries()) {
         dispatch({
           type: 'UPDATE_PHOTO_UPLOAD',
           localId: photo.localId,
@@ -126,11 +134,16 @@ export function useSession() {
         })
 
         try {
-          const { storagePath } = await uploadPhoto(
-            sessionId,
-            photo.localId,
-            photo.blob,
-            photo.mimeType,
+          const { photoId } = await uploadPhoto(
+            {
+              boothToken,
+              localId: photo.localId,
+              blob: photo.blob,
+              mimeType: photo.mimeType,
+              captureOrder: order,
+              width: photo.width,
+              height: photo.height,
+            },
             (pct) => {
               dispatch({
                 type: 'UPDATE_PHOTO_UPLOAD',
@@ -141,35 +154,11 @@ export function useSession() {
             }
           )
 
-          const ext = photo.mimeType === 'image/webp' ? 'webp' : 'jpg'
-          const filename = `photo-${String(photo.captureOrder + 1).padStart(2, '0')}.${ext}`
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: photoData, error: photoError } = await (supabase
-            .from('photos') as any)
-            .insert({
-              session_id: sessionId,
-              storage_path: storagePath,
-              filename,
-              file_size: photo.blob.size,
-              width: photo.width,
-              height: photo.height,
-              mime_type: photo.mimeType,
-              capture_order: photo.captureOrder,
-            })
-            .select('id')
-            .single()
-
-          if (photoError || !photoData) throw new Error(photoError?.message ?? 'DB insert failed')
-
-          const photoId = (photoData as Pick<DbPhoto, 'id'>).id
-
           dispatch({
             type: 'UPDATE_PHOTO_UPLOAD',
             localId: photo.localId,
             status: 'success',
             progress: 100,
-            storagePath,
             dbId: photoId,
           })
           successCount++
@@ -186,16 +175,13 @@ export function useSession() {
 
       // 3. Mark session complete or failed
       const finalStatus = successCount === photos.length ? 'complete' : 'failed'
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('sessions') as any)
-        .update({
-          status: finalStatus,
-          completed_at: new Date().toISOString(),
-          photo_count: successCount,
-        })
-        .eq('id', sessionId)
+      const completeRes = await fetch('/api/booth/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boothToken, status: finalStatus }),
+      }).catch(() => null)
 
-      if (finalStatus === 'failed') {
+      if (finalStatus === 'failed' || !completeRes?.ok) {
         dispatch({ type: 'SET_ERROR', error: 'Some photos failed to upload. Please retry.' })
         throw new Error('One or more photos failed to upload')
       }
@@ -220,6 +206,8 @@ export function useSession() {
     ...state,
     addPhoto,
     removePhoto,
+    restorePhoto,
+    discardPhoto,
     finishSession,
     resetSession,
   }

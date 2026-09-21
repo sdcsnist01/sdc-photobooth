@@ -34,8 +34,6 @@ export interface CapturedPhoto {
   captureOrder: number
   uploadStatus: PhotoUploadStatus
   uploadProgress: number // 0–100
-  /** storage_path after successful upload */
-  storagePath: string | null
   /** DB photo id after successful insert */
   dbId: string | null
 }
@@ -53,8 +51,8 @@ export type BoothStep =
 
 export interface BoothSessionState {
   step: BoothStep
-  /** Internal DB UUID (not exposed in QR) */
-  sessionId: string | null
+  /** Write credential for /api/booth/* (never in the QR) */
+  boothToken: string | null
   /** Token used in the gallery URL */
   secureToken: string | null
   photos: CapturedPhoto[]
@@ -66,7 +64,6 @@ export interface BoothSessionState {
 export interface GalleryPhoto {
   id: string
   filename: string
-  storagePath: string
   captureOrder: number
   width: number | null
   height: number | null
@@ -76,7 +73,6 @@ export interface GalleryPhoto {
 }
 
 export interface GallerySession {
-  id: string
   createdAt: string
   photoCount: number
   photos: GalleryPhoto[]

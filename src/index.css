@@ -6,36 +6,41 @@
 
 @theme {
   /* Colors */
-  --color-brand-50:  #f0f0ff;
-  --color-brand-100: #e0e0ff;
-  --color-brand-200: #c4c4ff;
-  --color-brand-300: #a0a0ff;
-  --color-brand-400: #7c7cff;
-  --color-brand-500: #6366f1;  /* primary indigo */
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-brand-50:  #fff0f6;
+  --color-brand-100: #ffdcea;
+  --color-brand-200: #ffbdd6;
+  --color-brand-300: #ff9cc2;
+  --color-brand-400: #ff6fa8;  /* lighter pink */
+  --color-brand-500: #ff2f7d;  /* primary brand pink */
+  --color-brand-600: #e01468;
+  --color-brand-700: #b80f54;
+  --color-brand-800: #8a0d40;
+  --color-brand-900: #5e0a2c;
+  --color-brand-950: #3a061b;
 
-  --color-accent-400: #fb923c;
-  --color-accent-500: #f97316;  /* warm orange accent */
-  --color-accent-600: #ea6a0a;
+  --color-coral-500: #ff5368;
+  --color-accent-400: #ffa06a;
+  --color-accent-500: #ff8a45;  /* orange */
+  --color-accent-600: #e6732f;
 
-  --color-surface-900: #0f0f23;
-  --color-surface-800: #1a1a3e;
-  --color-surface-700: #252550;
-  --color-surface-600: #312e81;
+  --color-violet-500: #8c5cf6;  /* purple accent */
 
-  --color-glass-bg: rgba(255, 255, 255, 0.06);
-  --color-glass-border: rgba(255, 255, 255, 0.12);
+  --color-surface-900: #0a0a0c;
+  --color-surface-800: #131316;
+  --color-surface-700: #1c1c21;
+  --color-surface-600: #26262c;
+
+  --color-glass-bg: rgba(10, 10, 12, 0.8);
+  --color-glass-border: rgba(255, 255, 255, 0.09);
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Space Grotesk', 'Manrope', system-ui, sans-serif;
+  --font-bubble: 'Baloo 2', 'Manrope', system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.4);
-  --shadow-glow-sm: 0 0 20px rgba(99, 102, 241, 0.25);
+  --shadow-glow: 0 0 40px rgba(255, 47, 125, 0.4);
+  --shadow-glow-sm: 0 0 20px rgba(255, 47, 125, 0.25);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   /* Radii */
@@ -58,64 +63,126 @@ html {
 body {
   margin: 0;
   background-color: var(--color-surface-900);
-  color: #f1f5f9;
+  color: #f4f0f2;
   min-height: 100dvh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 47, 125, 0.4); border-radius: 999px; }
 
 /* ─── Glassmorphism utilities ────────────────────────────────────────────────── */
 
 .glass {
-  background: var(--color-glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-glass-border);
 }
 
 .glass-dark {
-  background: rgba(15, 15, 35, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-glass-border);
 }
 
 /* ─── Gradient text ──────────────────────────────────────────────────────────── */
 
 .gradient-text {
-  background: linear-gradient(135deg, #818cf8 0%, #fb923c 100%);
+  background: linear-gradient(90deg, #ff2f7d 0%, #ff5368 50%, #ff8a45 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* Section titles — Space Grotesk with a gold-to-orange-to-coral gradient (distinct from the bubble wordmark) */
+.ux-section-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background-image: linear-gradient(90deg, #ffcb8e 0%, #ff8a45 50%, #ff5368 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* "Bubble" lettering — puffy 3D gradient text (Baloo 2) */
+.ux-bubble-word,
+.ux-bubble-three {
+  font-family: var(--font-bubble);
+  font-weight: 800;
+  line-height: 1;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* drop-shadow (not text-shadow) so the shadow doesn't cover the gradient fill */
+  filter: drop-shadow(0 3px 0 rgba(160, 15, 80, 0.3)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+}
+
+.ux-bubble-word {
+  background-image: linear-gradient(90deg, #ffcb8e 0%, #ff7a3d 10%, #ff2f8d 35%, #ff2f9e 50%, #ff2f8d 65%, #ff7a3d 90%, #ffcb8e 100%);
+}
+
+.ux-bubble-three {
+  background-image: linear-gradient(90deg, #ffcb8e 0%, #ff7a3d 25%, #ff2f9e 50%, #b23dff 75%, #8c5cf6 100%);
+}
+
 /* ─── Button variants ────────────────────────────────────────────────────────── */
 
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.75rem;
-  background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600));
-  color: white;
-  font-weight: 600;
+  background: linear-gradient(90deg, #ff2f7d 0%, #ff5368 50%, #ff8a45 100%);
+  color: #0a0a0c;
+  font-weight: 800;
   font-size: 0.9375rem;
-  border-radius: 0.75rem;
+  border-radius: 9999px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 22px rgba(255, 47, 125, 0.22);
+}
+
+/* White shine that sweeps across the button */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
-  filter: brightness(1.1);
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 10px 34px rgba(255, 47, 125, 0.3);
+}
+
+.btn-primary:hover:not(:disabled)::after {
+  animation: uxp-btn-shine 0.9s ease;
+}
+
+@keyframes uxp-btn-shine {
+  from { left: -60%; }
+  to   { left: 130%; }
 }
 
 .btn-primary:active:not(:disabled) {
@@ -134,17 +201,17 @@ body {
   gap: 0.5rem;
   padding: 0.75rem 1.75rem;
   background: transparent;
-  color: #c7d2fe;
+  color: #ffc2d5;
   font-weight: 600;
   font-size: 0.9375rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 47, 125, 0.4);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(255, 47, 125, 0.12);
   border-color: var(--color-brand-500);
   color: white;
 }
@@ -177,19 +244,19 @@ body {
   width: 5rem;
   height: 5rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(90deg, #ff2f7d 0%, #ff5368 50%, #ff8a45 100%);
+  border: 4px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
-  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.2), 0 4px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 6px rgba(255, 47, 125, 0.2), 0 6px 26px rgba(255, 47, 125, 0.3);
 }
 
 .btn-shutter:hover:not(:disabled) {
   transform: scale(1.06);
-  box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.3), 0 6px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 8px rgba(255, 47, 125, 0.3), 0 10px 34px rgba(255, 47, 125, 0.4);
 }
 
 .btn-shutter:active:not(:disabled) {
@@ -270,6 +337,18 @@ body {
   max-height: 100%;
 }
 
+/* Phones: photos run in a horizontal strip under the controls */
+@media (max-width: 767px) {
+  .photo-strip {
+    flex-direction: row;
+    overflow-y: hidden;
+    overflow-x: auto;
+    padding-right: 0;
+    height: 100%;
+    align-items: center;
+  }
+}
+
 /* ─── QR container ───────────────────────────────────────────────────────────── */
 
 .qr-container {
@@ -313,4 +392,21 @@ body {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
   }
+}
+
+/* ─── Undo countdown bar ─────────────────────────────────────────────────────── */
+
+@keyframes undo-shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+.undo-bar {
+  animation-name: undo-shrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary::after { display: none; }
 }
