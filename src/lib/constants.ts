@@ -38,7 +38,7 @@ export const UNDO_SECONDS = 5
 export const FRAME_SRC = '/frame.png'
 
 /** frame.png dimensions in pixels */
-export const FRAME_SIZE = { width: 1884, height: 1885 } as const
+export const FRAME_SIZE = { width: 1888, height: 1884 } as const
 
 /** Photo window inside frame.png, in the frame's own pixels */
-export const FRAME_WINDOW = { x: 140, y: 541, width: 1601, height: 991 } as const
+export const FRAME_WINDOW = { x: 144, y: 538, width: 1601, height: 991 } as const

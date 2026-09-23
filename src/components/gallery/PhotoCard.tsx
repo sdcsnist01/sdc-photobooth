@@ -11,7 +11,10 @@ interface Props {
 export function PhotoCard({ photo, index, onClick }: Props) {
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation()
-    downloadSinglePhoto(photo.signedUrl, photo.filename)
+    downloadSinglePhoto(photo.signedUrl, photo.filename).catch((err) => {
+      console.error('Download failed:', err)
+      alert('Could not download this photo. Please try again.')
+    })
   }
 
   return (

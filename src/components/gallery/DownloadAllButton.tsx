@@ -5,10 +5,9 @@ import type { GalleryPhoto } from '@/types/photobooth'
 
 interface Props {
   photos: GalleryPhoto[]
-  tokenSlug: string
 }
 
-export function DownloadAllButton({ photos, tokenSlug }: Props) {
+export function DownloadAllButton({ photos }: Props) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -20,7 +19,7 @@ export function DownloadAllButton({ photos, tokenSlug }: Props) {
     setError(null)
 
     try {
-      await downloadAllPhotos(photos, tokenSlug, setProgress)
+      await downloadAllPhotos(photos, setProgress)
     } catch (err) {
       setError('Download failed. Please try again.')
       console.error(err)
@@ -41,7 +40,7 @@ export function DownloadAllButton({ photos, tokenSlug }: Props) {
         {isDownloading ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            Preparing ZIP… {progress > 0 ? `${progress}%` : ''}
+            Downloading… {progress > 0 ? `${progress}%` : ''}
           </>
         ) : (
           <>

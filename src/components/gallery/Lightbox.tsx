@@ -51,7 +51,13 @@ export function Lightbox({ photo, photos, onClose, onNavigate }: Props) {
         <div className="flex items-center gap-2">
           <button
             id="lightbox-download-btn"
-            onClick={(e) => { e.stopPropagation(); downloadSinglePhoto(photo.signedUrl, photo.filename) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              downloadSinglePhoto(photo.signedUrl, photo.filename).catch((err) => {
+                console.error('Download failed:', err)
+                alert('Could not download this photo. Please try again.')
+              })
+            }}
             className="glass rounded-full p-2 text-white hover:bg-white/20 transition-all"
             aria-label="Download photo"
           >

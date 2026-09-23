@@ -236,14 +236,14 @@ export function BoothPage() {
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="glass-dark relative px-5 py-4 flex items-center justify-center border-b border-white/[0.09] min-h-[4.5rem] md:min-h-[5.5rem]">
+      <header className="glass-dark relative px-5 py-2 flex items-center justify-center border-b border-white/[0.09] min-h-[3.25rem] md:min-h-[3.75rem]">
         <img
           src="/sdc-logo.png"
           alt="SDC – Student Developers Community"
-          className="absolute left-4 md:left-5 h-7 md:h-9 w-auto select-none"
+          className="absolute left-4 md:left-5 h-6 md:h-7 w-auto select-none"
           draggable={false}
         />
-        <h1 className="ux-bubble-word text-3xl md:text-4xl tracking-wide">SDC Photobooth</h1>
+        <h1 className="ux-bubble-word text-2xl md:text-3xl tracking-wide">SDC Photobooth</h1>
       </header>
 
       {/* Body */}
@@ -254,7 +254,7 @@ export function BoothPage() {
             {/* Live preview inside the brand frame: the camera sits in the frame's photo
                 window and the frame is drawn on top, so it matches the saved photo. */}
             <div
-              className="absolute inset-2 flex items-center justify-center"
+              className="absolute inset-1 flex items-center justify-center"
               style={{ containerType: 'size' }}
             >
               <div

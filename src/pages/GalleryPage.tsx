@@ -30,8 +30,6 @@ export function GalleryPage() {
   }
 
   // ─── Loaded ───────────────────────────────────────────────────────────────
-  const tokenSlug = token?.slice(0, 8) ?? 'photos'
-
   return (
     <div
       className="min-h-dvh flex flex-col"
@@ -55,7 +53,7 @@ export function GalleryPage() {
 
           {/* Sticky download-all footer */}
           <footer className="glass-dark border-t border-white/10 p-4 sticky bottom-0">
-            <DownloadAllButton photos={session.photos} tokenSlug={tokenSlug} />
+            <DownloadAllButton photos={session.photos} />
           </footer>
         </>
       )}
