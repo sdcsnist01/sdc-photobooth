@@ -35,10 +35,12 @@ export const COUNTDOWN_SECONDS = 3
 export const UNDO_SECONDS = 5
 
 /** Brand frame composited onto every photo (public/frame.png, transparent photo window) */
-export const FRAME_SRC = '/frame.png'
+// The ?v= query busts the browser cache whenever frame.png is swapped for a
+// new version — bump it each time a new frame image is dropped in.
+export const FRAME_SRC = '/frame.png?v=3'
 
 /** frame.png dimensions in pixels */
-export const FRAME_SIZE = { width: 1888, height: 1884 } as const
+export const FRAME_SIZE = { width: 1254, height: 1254 } as const
 
 /** Photo window inside frame.png, in the frame's own pixels */
-export const FRAME_WINDOW = { x: 144, y: 538, width: 1601, height: 991 } as const
+export const FRAME_WINDOW = { x: 96, y: 360, width: 1064, height: 658 } as const
