@@ -23,7 +23,6 @@ export function BoothPage() {
   const camera = useCamera()
   const session = useSession()
 
-  const videoRef = useRef<HTMLVideoElement | null>(null)
   const [flashActive, setFlashActive] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [removed, setRemoved] = useState<{ photo: CapturedPhoto; index: number } | null>(null)
@@ -36,13 +35,6 @@ export function BoothPage() {
   useEffect(() => {
     void camera.requestCamera()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync the video element ref once the stream is active
-  useEffect(() => {
-    if (camera.status === 'active') {
-      videoRef.current = document.getElementById('camera-video') as HTMLVideoElement | null
-    }
-  }, [camera.status])
 
   // beforeunload warning during active capture/upload
   useEffect(() => {
@@ -61,7 +53,13 @@ export function BoothPage() {
   }, [session.step, session.photos.length])
 
   const handleCapture = useCallback(async () => {
-    if (!videoRef.current || camera.status !== 'active') return
+    // Looked up fresh here rather than cached in a ref — the capture screen's
+    // <video> element gets replaced whenever the UI returns to it (e.g. after
+    // "Start New Session"), and the camera often never actually stops in
+    // between, so a cached ref can end up pointing at an old, detached,
+    // frozen video element instead of the live one.
+    const videoEl = document.getElementById('camera-video') as HTMLVideoElement | null
+    if (!videoEl || camera.status !== 'active') return
     if (session.photos.length >= MAX_PHOTOS_PER_SESSION) return
 
     try {
@@ -69,7 +67,7 @@ export function BoothPage() {
       setFlashActive(true)
       setTimeout(() => setFlashActive(false), 500)
 
-      const result = await captureFrame(videoRef.current)
+      const result = await captureFrame(videoEl)
 
       const photo: CapturedPhoto = {
         localId: crypto.randomUUID(),
